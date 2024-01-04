@@ -11,6 +11,8 @@ class SindonewsSpider(scrapy.Spider):
 	start_urls = [
 		"https://search.sindonews.com/go?q=kericuhan&type=artikel",
 		"https://search.sindonews.com/go?q=teroris&type=artikel",
+		"https://search.sindonews.com/go?q=demo&type=artikel",
+		"https://search.sindonews.com/go?type=artikel&q=bom"
 	]
 
 	def parse(self, response):

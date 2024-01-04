@@ -1,7 +1,7 @@
 import scrapy
 import uuid
 import json
-
+import os
 random_uuid = uuid.uuid4()
 
 class SindonewsSpider(scrapy.Spider):
@@ -20,12 +20,16 @@ class SindonewsSpider(scrapy.Spider):
 			'url_scrapped': response.url,
 			'data': [],
 		}
+		script_dir = os.path.dirname(os.path.abspath(__file__))
+		dump_dir = os.path.abspath(os.path.join(script_dir, '../../../dumps'))
+		file_path = f'{dump_dir}/{self.name}_{response.url.split("/")[-1]}.json'
+		
 		items = response.css('.news > ul.news-search > li')
-		paginationNextPage = response.css('.news > .paging > ul > li > a > i.fa-angle-right')
-		paginationPrevPage = response.css('.news > .paging > ul > li > a > i.fa-angle-left')
-		paginationCurrentPage = response.css('.news > .paging > ul > li.current')
-		paginationCurrentNextPage = response.css('.news > .paging > ul > li.current + li')
-		paginationCurrentNextHrefPage = paginationCurrentNextPage.css('a').attrib['href']
+		pagination_next_page = response.css('.news > .paging > ul > li > a > i.fa-angle-right')
+		pagination_prev_page = response.css('.news > .paging > ul > li > a > i.fa-angle-left')
+		pagination_current_page = response.css('.news > .paging > ul > li.current')
+		pagination_current_next_page = response.css('.news > .paging > ul > li.current + li')
+		pagination_current_next_href_page = pagination_current_next_page.css('a').attrib['href']
 
 		for item in items: 
 			result['data'].append({
@@ -39,20 +43,17 @@ class SindonewsSpider(scrapy.Spider):
 			})
 
 
-		with open(f'{self.name}_{response.url.split("/")[-1]}.json', 'w') as json_file:
+		with open(file_path, 'w') as json_file:
 			json.dump(result, json_file, indent=2)
 
-		
-		print('👀 paginationNextPage', paginationNextPage)
-		print('👀 paginationCurrentNextPage', paginationCurrentNextPage)
-		if (paginationNextPage is not None):
-			print('✅ redirect to', paginationCurrentNextHrefPage)
+		if (pagination_next_page is not None):
+			print('✅ redirect to', pagination_current_next_href_page)
 
 			yield response.follow(
-				paginationCurrentNextHrefPage, 
+				pagination_current_next_href_page, 
 				callback=self.parse,
 			)
 
-		# print('✅ Scrapped ' + self.name + ': ' + response.url)
+		print('✅ Scrapped ' + self.name + ': ' + response.url)
 		return result
 
